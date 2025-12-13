@@ -99,20 +99,8 @@ class Board:
         coords = self.generate_coords()
         self.fill_coords(coords)
         self.solution(time() + 5)
+        print("done")
 
-    def apply_difficulty(self, difficulty):
-        """Adds n amount of coords from the board which holds the solution to the progress_board.
-        Progress board is seen by the player while playing the game.
-        """
-        difficulties = {
-            "Easy": 30,
-            "Medium": 25,
-            "Hard": 20,
-        }
 
-        self.progress_coords = self.generate_coords(difficulties[difficulty])
-
-        for coord in self.progress_coords:
-            row, col = coord
-
-            self.progress_board[row][col] = self.board[row][col]
+board = Board()
+board.generate_board()
