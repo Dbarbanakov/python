@@ -4,6 +4,18 @@ import shutil
 import sys
 import time
 
+# Create a global variable for the main directory.
+main_dir = Path.cwd()
+
+
+def test_dir():
+    # Moves files from test directory, if present, to the main directory, deletes it when done.
+    test_dir = main_dir / "test"
+    if test_dir.exists():
+        for file in test_dir.iterdir():
+            shutil.move(file, main_dir)
+        test_dir.rmdir()
+
 
 def create_dir(directory):
     # Creates a directory if it doesn't exist.
@@ -11,39 +23,37 @@ def create_dir(directory):
         directory.mkdir()
 
 
-def move_to_Duplicates(file, parent_dir):
-    # Create a 'duplicates' directory if it doesn't exist.
-    duplicates_dir = parent_dir / "duplicates"
-    create_dir(duplicates_dir)
+def move_to_dir(dir_name, file):
+    # Create the directory if it doesn't exist.
+    dir = main_dir / f"{dir_name}"
+    create_dir(dir)
 
-    # If the file is not in the 'duplicates' directory, move it there.
-    if not (duplicates_dir / file.name).exists():
-        shutil.move(file, duplicates_dir)
+    # If the file is not in the directory, move it there.
+    if not (dir / file.name).exists():
+        shutil.move(file, dir)
 
-    # Else rename it by adding an increment at the end.
+    # Else rename it by adding an increment in brackets at the end.
     else:
-        # Split by name and extention.
-        split = file.name.split(".")
+        # The format will look like this - script(i).py
+        # Where (i) is the increment, representing the next unique number.
         i = 1
-        # Add an increment after name, then a '.' dot and finally the extention.
-        # Name format will look like - 'script_1.py'.
-        incremented_file = f"{split[0]}_{i}.{split[1]}"
+        incremented_file = f"{file.stem}({i}){file.suffix}"
         # While loop that keeps incrementing the number, until the filename is unique.
-        while (duplicates_dir / incremented_file).exists():
+        while (dir / incremented_file).exists():
             i += 1
-            incremented_file = f"{split[0]}_{i}.{split[1]}"
+            incremented_file = f"{file.stem}({i}){file.suffix}"
 
         # Reset the increment back to 1 and move the file.
         i = 1
-        shutil.move(file, (duplicates_dir / incremented_file))
+        shutil.move(file, (dir / incremented_file))
 
 
-def main(current_dir):
+def main():
     # Creates the directory where files will be sorted in folders.
-    sorted_files_dir = current_dir / "sorted_files"
+    sorted_files_dir = main_dir / "sorted_files"
     create_dir(sorted_files_dir)
 
-    for file in current_dir.iterdir():
+    for file in main_dir.iterdir():
         if file.is_file():
             # If the file's name is the same as the script's name or "README.md" skip it.
             if file.name in (sys.argv[0], "README.md"):
@@ -51,19 +61,15 @@ def main(current_dir):
 
             # Get the file extention of each file.
             file_extention = file.suffix
+
             # Get the destination's folder name mapped to the file's extention.
             folder_name = files_to_dirs.get(file_extention)
+            # If the extention is not present, move it in another folder.
             if not folder_name:
-                # Creates a directory for files which do not match any of the extentions,
-                # matching the sorting criteria.
-                missing_dir = sorted_files_dir / "missing"
-                create_dir(missing_dir)
-                if not (missing_dir / file.name).exists():
-                    shutil.move(file, missing_dir)
-                else:
-                    print("hehe")
+                move_to_dir("not_assigned", file)
                 continue
-            # Create the full path by adding the destination folder to the current directory.
+
+            # Create the full path of the destination folder.
             destination_dir = sorted_files_dir / folder_name
 
             # Create the directory if it's not present.
@@ -74,17 +80,11 @@ def main(current_dir):
                 shutil.move(file, destination_dir)
             # If it is already there, move it to '/duplicates' directory.
             else:
-                move_to_Duplicates(file, sorted_files_dir)
+                move_to_dir("duplicates", file)
 
 
 if __name__ == "__main__":
-    current_dir = Path.cwd()
-
-    test_dir = current_dir / "test"
-    if test_dir.exists():
-        for file in test_dir.iterdir():
-            shutil.move(file, current_dir)
-        Path(test_dir).rmdir()
+    test_dir()
 
     # A map of file extention to the destination folder.
     files_to_dirs = {
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     }
 
     while True:
-        main(current_dir)
+        main()
 
         now = datetime.now().isoformat(sep="@", timespec="seconds")
         time_sorted = (
