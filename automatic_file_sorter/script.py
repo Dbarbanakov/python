@@ -66,6 +66,11 @@ def main():
 
 
 if __name__ == "__main__":
+    test_dir = Path.cwd() / "test"
+    if test_dir.exists():
+        for file in test_dir.iterdir():
+            shutil.move(file, Path.cwd())
+        Path(test_dir).rmdir()
 
     # A map of file extention to the destination folder.
     files_to_dirs = {
@@ -81,6 +86,8 @@ if __name__ == "__main__":
         main()
 
         now = datetime.now().isoformat(sep="@", timespec="seconds")
-        time_sorted = f"Last sort was performed at {now.split('@')[1]} {now.split('@')[0]}."
+        time_sorted = (
+            f"Last sort was performed at {now.split('@')[1]} {now.split('@')[0]}."
+        )
         print(time_sorted)
         time.sleep(5)
