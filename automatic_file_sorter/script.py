@@ -1,10 +1,16 @@
 import shutil
 from pathlib import Path
 import sys
+import time
+from datetime import datetime
 
 
 def main():
     current_dir = Path.cwd()
+    sorted_files_dir = current_dir / "sorted_files"
+
+    if not Path(sorted_files_dir).exists():
+        Path.mkdir(sorted_files_dir)
 
     for file in current_dir.iterdir():
         if Path.is_file(file):
@@ -12,7 +18,7 @@ def main():
             file_name = f"{str(file).split('/')[-1]}"
 
             # If the name of the file is same as the script, skip it.
-            if file_name == sys.argv[0]:
+            if file_name == sys.argv[0] or file_name == "README.md":
                 continue
 
             # Get the file extention of each file.
@@ -20,7 +26,7 @@ def main():
             # Get the destination's folder name mapped to the file's extention.
             folder_name = files_to_dirs[file_extention]
             # Create the full path by adding the destination folder to the current directory.
-            destination_dir = current_dir / folder_name
+            destination_dir = sorted_files_dir / folder_name
 
             # Create the directory if it's not present.
             if not Path.is_dir(destination_dir):
@@ -32,7 +38,7 @@ def main():
             # If it is already there, move it to 'duplicates' directory.
             else:
                 # Create a 'duplicates' directory if it doesn't exist.
-                duplicates_dir = Path(current_dir / "duplicates")
+                duplicates_dir = Path(sorted_files_dir / "duplicates")
                 if not Path.is_dir(duplicates_dir):
                     Path.mkdir(duplicates_dir)
 
@@ -53,7 +59,7 @@ def main():
                     while Path(duplicates_dir / incremented_file).exists():
                         increment += 1
                         incremented_file = f"{split[0]}_{increment}.{split[1]}"
-                    
+
                     # Reset the increment back to 1 and move the file.
                     increment = 1
                     shutil.move(file, Path(duplicates_dir / incremented_file))
@@ -61,7 +67,7 @@ def main():
 
 if __name__ == "__main__":
 
-    # A map of file extentions to the destination folder.
+    # A map of file extention to the destination folder.
     files_to_dirs = {
         "py": "Python",
         "html": "Web",
@@ -71,4 +77,10 @@ if __name__ == "__main__":
         "xlsx": "Data",
     }
 
-    main()
+    while True:
+        main()
+
+        now = datetime.now().isoformat(sep="@", timespec="seconds")
+        time_sorted = f"Last sort was performed at {now.split('@')[1]} {now.split('@')[0]}."
+        print(time_sorted)
+        time.sleep(5)
