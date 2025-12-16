@@ -1,0 +1,8 @@
+{
+    ".py": "Python",
+    ".html": "Web",
+    ".jpeg": "Images",
+    ".png": "Images",
+    ".csv": "Data",
+    ".xlsx": "Data"
+}
