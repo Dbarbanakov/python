@@ -30,16 +30,24 @@ def pwned_api_check(password):
 
 
 def main(file):
-    with open(file) as f:
-        for p in f:
-            password = p.strip()
-            count = pwned_api_check(password)
-            if count:
-                print(f"{password} was found {count} times ...")
-            else:
-                print(f"{password} was not found in the hack archive.")
-        return "done!"
+    try:
+        with open(file) as f:
+            for password in f:
+                count = pwned_api_check(password.strip())
+                with open("results.txt", mode="a", encoding="utf-8") as results:
+                    if count:
+                        results.write(
+                            f"{password.strip()} - was found {count} times.\n"
+                        )
+                    else:
+                        results.write(f"{password.strip()} - is secure.\n")
+            return "done!"
+    except FileNotFoundError:
+        print("File was not found.")
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1]))
+    try:
+        sys.exit(main(sys.argv[1]))
+    except IndexError:
+        print("Please enter a file name when running the script.")
