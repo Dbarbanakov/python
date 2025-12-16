@@ -8,7 +8,7 @@ import time
 main_dir = Path.cwd()
 
 
-def test_dir():
+def handle_test_dir():
     # Moves files from test directory, if present, to the main directory, deletes it when done.
     test_dir = main_dir / "test"
     if test_dir.exists():
@@ -17,41 +17,43 @@ def test_dir():
         test_dir.rmdir()
 
 
-def create_dir(directory):
-    # Creates a directory if it doesn't exist.
-    if not directory.is_dir():
-        directory.mkdir()
+def get_dir(folder_name, parent_dir=main_dir):
+    # Creates a directory if it doesn't exist.Returns full path.
+    dir = parent_dir / folder_name
+    if not dir.is_dir():
+        dir.mkdir()
+    return dir
+
+
+def rename_file(file, parent_dir):
+    # The format will look like this - script(i).py
+    # Where (i) is the increment, representing the next unique number.
+    i = 1
+    incremented_file = file.stem + "(" + str(i) + ")" + file.suffix
+
+    while (parent_dir / incremented_file).exists():
+        i += 1
+        incremented_file = f"{file.stem}({i}){file.suffix}"
+
+    return incremented_file
 
 
 def move_to_dir(dir_name, file):
     # Create the directory if it doesn't exist.
-    dir = main_dir / f"{dir_name}"
-    create_dir(dir)
+    dir = get_dir(dir_name)
 
     # If the file is not in the directory, move it there.
     if not (dir / file.name).exists():
         shutil.move(file, dir)
-
     # Else rename it by adding an increment in brackets at the end.
     else:
-        # The format will look like this - script(i).py
-        # Where (i) is the increment, representing the next unique number.
-        i = 1
-        incremented_file = f"{file.stem}({i}){file.suffix}"
-        # While loop that keeps incrementing the number, until the filename is unique.
-        while (dir / incremented_file).exists():
-            i += 1
-            incremented_file = f"{file.stem}({i}){file.suffix}"
-
-        # Reset the increment back to 1 and move the file.
-        i = 1
-        shutil.move(file, (dir / incremented_file))
+        renamed_file = rename_file(file, dir)
+        shutil.move(file, (dir / renamed_file))
 
 
 def main():
     # Creates the directory where files will be sorted in folders.
-    sorted_files_dir = main_dir / "sorted_files"
-    create_dir(sorted_files_dir)
+    sorted_files_dir = get_dir("sorted_files")
 
     for file in main_dir.iterdir():
         if file.is_file():
@@ -69,11 +71,7 @@ def main():
                 move_to_dir("not_assigned", file)
                 continue
 
-            # Create the full path of the destination folder.
-            destination_dir = sorted_files_dir / folder_name
-
-            # Create the directory if it's not present.
-            create_dir(destination_dir)
+            destination_dir = get_dir(folder_name, sorted_files_dir)
 
             # Move the file if it's not in the directory.
             if not (destination_dir / file.name).exists():
@@ -84,7 +82,7 @@ def main():
 
 
 if __name__ == "__main__":
-    test_dir()
+    handle_test_dir()
 
     # A map of file extention to the destination folder.
     files_to_dirs = {
