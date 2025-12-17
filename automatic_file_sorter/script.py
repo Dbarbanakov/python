@@ -53,6 +53,7 @@ def handle_test_dir():
 
 
 def get_map():
+    # Load the data from a JSON file.
     with open("extention_to_dir_map.json", "r") as f:
         return json.load(f)
 
